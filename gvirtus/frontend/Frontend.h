@@ -86,7 +86,7 @@ public:
     static Frontend * GetFrontend(Communicator *c = NULL);
 
     //Sand	2016.03.23  用来设置静态数据成员device_number
-    static void set_device_choiced(int dev);
+   // static void set_device_choiced(int dev);
     static void Get_Device_Properties(int dev);		//Sandy test04中添加
     static void restore_Device_Properties(void);	//Sandy test04中添加
 
@@ -100,6 +100,7 @@ public:
      * @param input_buffer the buffer containing the parameters of the routine.
      */
     void Execute(const char *routine, const Buffer *input_buffer = NULL);
+    void Execute_internal(const char *routine, const Buffer *input_buffer = NULL);	//专门为CudaRt_internal中的六个函数重写的Execute函数
 
     /** 
      * Prepares the Frontend for the execution. This method _must_ be called

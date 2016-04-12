@@ -50,6 +50,18 @@ public:
 #endif
         Frontend::GetFrontend()->Execute(routine, input_buffer);
     }
+    /*
+     * Sandy,2016.04.12
+     * 这个函数是专门为了CudaRtHandler_internal.cpp中的六个函数而改写的的
+     * 目的就是为了把所有的参数都同时传送到所有的后端GPU
+     */
+    static inline void Execute_internal(const char *routine, const Buffer *input_buffer = NULL) {
+    #ifdef DEBUG
+            if (string(routine) != "cudaLaunch")
+                cerr << "Requesting " << routine << endl;
+    #endif
+            Frontend::GetFrontend()->Execute_internal(routine, input_buffer);
+        }
 
     /**
      * Prepares the Frontend for the execution. This method _must_ be called

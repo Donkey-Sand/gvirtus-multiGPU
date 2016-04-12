@@ -268,6 +268,36 @@ void Frontend::Execute(const char* routine, const Buffer* input_buffer) {
         mpOutputBuffer[device_choiced]->Read<char>(mpCommunicator[device_choiced], out_buffer_size);
 }
 
+/*
+ * 2016.04.12,函数修改 Sandy
+ * 这个函数是专门为了CudaRtHandler_internal.cpp中的六个函数而改写的的
+ * 目的就是为了把所有的参数都同时传送到所有的后端GPU
+ */
+void Frontend::Execute_internal(const char* routine, const Buffer* input_buffer)
+{
+	int i = 0;
+	for(i=0; i<device_count; ++i)
+	{
+		if (input_buffer == NULL)
+			input_buffer = mpInputBuffer[i];
+
+		/* sending job */
+		mpCommunicator[i]->Write(routine, strlen(routine) + 1);
+		input_buffer->Dump(mpCommunicator[i]);
+		mpCommunicator[i]->Sync();
+
+		/* receiving output */
+		//std::istream &in = mpCommunicator->GetInputStream();
+
+		mpOutputBuffer[i]->Reset();
+
+		mpCommunicator[i]->Read((char *) & mExitCode[i], sizeof (int));
+		size_t out_buffer_size;
+		mpCommunicator[i]->Read((char *) & out_buffer_size, sizeof (size_t));
+		if (out_buffer_size > 0)
+			mpOutputBuffer[i]->Read<char>(mpCommunicator[i], out_buffer_size);
+	}//end for
+}
 //Sandy 添加
 //test04中废除此函数
 #if 0

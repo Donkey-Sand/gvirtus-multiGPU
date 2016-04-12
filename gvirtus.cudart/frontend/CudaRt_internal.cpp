@@ -33,9 +33,13 @@
  */
 
 
-//	Sandy test04
+/*	Sandy test04
 //修改时间：2016.04.08
-//修改：这个API只会被发送到第一个GPU上，因此第二个GPU会报错，为了解决这个问题，应该把这个API同时发送给两个后端的GPU
+//这两个API应该被发送到同一个GPU上进行CUDA 设备的注册与取消注册的任务，在单GPU上这不会有问题
+//但是，在多GPU上运行是，只有第一个API会被发送到第一个GPU上，而第二个API会发送给第二个GPU，由于必须成对使用，因此会在第二个GPU上报错，
+//为了解决这个问题，应该把这个API同时发送给两个后端的GPU
+ * 参考另外的API
+ */
 extern "C" __host__ void** __cudaRegisterFatBinary(void *fatCubin) {
     /* Fake host pointer */
     __fatBinC_Wrapper_t *bin = (__fatBinC_Wrapper_t *)fatCubin;
@@ -46,7 +50,7 @@ extern "C" __host__ void** __cudaRegisterFatBinary(void *fatCubin) {
     input_buffer = CudaUtil::MarshalFatCudaBinary(bin, input_buffer);
 
     CudaRtFrontend::Prepare();
-    CudaRtFrontend::Execute("cudaRegisterFatBinary", input_buffer);		//有第二个参数？？？？ 问题就处在这里？？？
+    CudaRtFrontend::Execute_internal("cudaRegisterFatBinary", input_buffer);		//有第二个参数？？？？ 问题就处在这里？？？,所有重写了这个函数
     if (CudaRtFrontend::Success())
         return (void **) fatCubin;
     return NULL;
@@ -55,7 +59,7 @@ extern "C" __host__ void** __cudaRegisterFatBinary(void *fatCubin) {
 extern "C" __host__ void __cudaUnregisterFatBinary(void **fatCubinHandle) {
     CudaRtFrontend::Prepare();
     CudaRtFrontend::AddStringForArguments(CudaUtil::MarshalHostPointer(fatCubinHandle));	//MarshalHostPointer函数的返回值是参数指针的内容，是64位的地址值
-    CudaRtFrontend::Execute("cudaUnregisterFatBinary");
+    CudaRtFrontend::Execute_internal("cudaUnregisterFatBinary");	//这个函数被重写了 Sandy 2016.04.12
 }
 
 extern "C" __host__ void __cudaRegisterFunction(void **fatCubinHandle, const char *hostFun,
