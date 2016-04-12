@@ -59,7 +59,7 @@ extern "C" __host__ void** __cudaRegisterFatBinary(void *fatCubin) {
 extern "C" __host__ void __cudaUnregisterFatBinary(void **fatCubinHandle) {
     CudaRtFrontend::Prepare();
     CudaRtFrontend::AddStringForArguments(CudaUtil::MarshalHostPointer(fatCubinHandle));	//MarshalHostPointer函数的返回值是参数指针的内容，是64位的地址值
-    CudaRtFrontend::Execute_internal("cudaUnregisterFatBinary");	//这个函数被重写了 Sandy 2016.04.12
+    CudaRtFrontend::Execute("cudaUnregisterFatBinary");	//这个函数被重写了 Sandy 2016.04.12
 }
 
 extern "C" __host__ void __cudaRegisterFunction(void **fatCubinHandle, const char *hostFun,

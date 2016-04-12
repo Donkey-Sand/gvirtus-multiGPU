@@ -153,7 +153,7 @@ public:
 
     template <class T> T Get() {
         if (mOffset + sizeof (T) > mLength)
-            throw "Can't read any " + std::string(typeid (T).name()) + ".";
+            throw "Can't read any " + std::string(typeid (T).name()) + ".";		//typeid获取后面参数的类型名，当参数为size_t类型时，返回值为字符m.	//Sandy 2016.04.12
         T result = *((T *) (mpBuffer + mOffset));
         mOffset += sizeof (T);
         return result;
