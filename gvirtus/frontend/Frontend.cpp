@@ -35,6 +35,8 @@
 
 #include "Frontend.h"
 
+# include <string>
+# include <stdlib.h>
 #include <iostream>
 #include <unistd.h>
 #include <pthread.h>
@@ -76,19 +78,16 @@ void Frontend::Init(Communicator *c) {
     * Communicator::Get函数返回一个new TcpCommunicator(communicator)对象
     * 如果在这里多次调用Communicator::Get函数返回多个TcpCommunicator对象然后connect到不同的服务器如何？
     */
-    	/*
-    communicator = cf->Get("communicator");//就是这里，2016.03.10,Get 函数修改 Sand
-    mpCommunicator = Communicator::Get(communicator);
 
-    mpCommunicator->Connect();//这里包括了socket中的connect（）函数
-    mpInputBuffer = new Buffer();
-    mpOutputBuffer = new Buffer();
-    mpLaunchBuffer = new Buffer();
-    mExitCode = -1;
-    mpInitialized = true;	//注意这个赋值命令
-    */
+    //Sandy 2016.04.13
+    //这连个值仅仅在这里有用到，其余地方没有使用
+
+    cout<<" "<<endl;	//这一句没有任何意义，但是如果删除这一句那么下面这一行会报错，神奇的bug，2016.04.13
+    string tmp_g = cf->Get("gvirtus_device_count");		//tmp的值为数字组成的字符串
+	int gvirtus_device_count = atoi(tmp_g.c_str());
+
     device_index = 0;	//这是我加上的，用来标识GPU的下标
-    device_count = DEVICE_COUNT_MY;	//这也是我加上的，标识一共有多少个GPU
+    device_count = gvirtus_device_count;	//这也是我加上的，标识一共有多少个GPU
    // device_choiced = device_number;
     //这也是我加上的，标识正在使用的是第几个GPU,通过函数cudaSetDevice来设定这个值
 
@@ -126,7 +125,8 @@ void Frontend::Init(Communicator *c) {
  * 其实与Init()函数没有任何变化，只是形参为void
  * test04中废弃
  *******************************************************************************************************************************/
-void Frontend::InitForSetDevice() {
+void Frontend::InitForSetDevice()
+{
 #if 1
     const char *config_file;
 #ifdef _CONFIG_FILE
@@ -147,20 +147,15 @@ void Frontend::InitForSetDevice() {
     * cf->Get函数返回的是字符串："tcp://219.219.216.177:9988
     * Communicator::Get函数返回一个new TcpCommunicator(communicator)对象
     * 如果在这里多次调用Communicator::Get函数返回多个TcpCommunicator对象然后connect到不同的服务器如何？
-    */
-    	/*
-    communicator = cf->Get("communicator");//就是这里，2016.03.10,Get 函数修改 Sand
-    mpCommunicator = Communicator::Get(communicator);
 
-    mpCommunicator->Connect();//这里包括了socket中的connect（）函数
-    mpInputBuffer = new Buffer();
-    mpOutputBuffer = new Buffer();
-    mpLaunchBuffer = new Buffer();
-    mExitCode = -1;
     mpInitialized = true;	//注意这个赋值命令
-    */
-    device_index = 0;	//这是我加上的，用来标识GPU的下标
-    device_count = DEVICE_COUNT_MY;	//这也是我加上的，标识一共有多少个GPU
+
+    **********/
+    cout<<" "<<endl;	//这一句没有任何意义，但是如果删除这一句那么下面这一行会报错，神奇的bug，2016.04.13
+    string num = cf->Get("gvirtus_device_count");		//tmp的值为数字组成的字符串
+	int gvirtus_device_count = atoi(num.c_str());
+	device_index = 0;	//这是我加上的，用来标识GPU的下标
+	device_count = gvirtus_device_count;	//这也是我加上的，标识一共有多少个GPU
     device_choiced = device_number;//这也是我加上的，标识正在使用的是第几个GPU,通过函数cudaSetDevice来设定这个值
 
     communicator = cf->Get_IPs("communicator",device_choiced);//得到的返回值类似于"tcp://219.219.216.177:9988"这种形式

@@ -49,8 +49,8 @@
 
 using namespace std;
 
-#define DEVICE_COUNT_MY 2;//定义前端一共能够使用几个后端GPU
-const int BACKEND_COUNT = 2;//和上面一样的意思
+//#define DEVICE_COUNT_MY 2;//定义前端一共能够使用几个后端GPU
+const int MAX_BACKEND_COUNT = 100;//定义前端最多能够使用几个后端GPU，一般不会超过一百了吧？如果超过了可以修改这个值
 
 /**
  * Frontend is the object used by every cuda routine wrapper for requesting the
@@ -248,13 +248,13 @@ private:
     void Init(Communicator *c);
     void InitForSetDevice();	//2016.03.16	这个函数只为API cudaSetDevice()而使用
     int device_index;	//这是我加上的，用来标识GPU的下标
-    int device_count;	//这也是我加上的，标识一共有多少个GPU
+    int device_count;	//这也是我加上的，标识后端一共有多少个GPU，这个变量的具体值是配置文件的 gVirtuS_DEVICE_COUNT 这个单词的后面的数字
     static int device_choiced;//这也是我加上的，标识正在使用的是第几个GPU,通过函数cudaSetDevice来设定这个值	static 是test04加上的
-    Communicator *mpCommunicator[BACKEND_COUNT];//这个一个类，用来与后端的Communicator类相互通信
-    Buffer * mpInputBuffer[BACKEND_COUNT];
-    Buffer * mpOutputBuffer[BACKEND_COUNT];
-    Buffer * mpLaunchBuffer[BACKEND_COUNT];
-    int mExitCode[BACKEND_COUNT]; 	//这里要不要改成数组？？？？？2016.03.11
+    Communicator *mpCommunicator[MAX_BACKEND_COUNT];//这个一个类，用来与后端的Communicator类相互通信
+    Buffer * mpInputBuffer[MAX_BACKEND_COUNT];
+    Buffer * mpOutputBuffer[MAX_BACKEND_COUNT];
+    Buffer * mpLaunchBuffer[MAX_BACKEND_COUNT];
+    int mExitCode[MAX_BACKEND_COUNT]; 	//这里要不要改成数组？？？？？2016.03.11
     static map<pthread_t, Frontend*> *mpFrontends;
     static int device_number;//Sandy 2016.03.16  用来给device_choiced传值
     bool mpInitialized = false;

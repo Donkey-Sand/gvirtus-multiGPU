@@ -106,7 +106,10 @@ GVIRTUS_PATH/etc/gvirtus.properties
     #   Tcp: tcp://hostname:port
     #   VMShm: vmshm://hostname:port
     
-    communicator : tcp://localhost:9988 #change localhost with the host of backend machine if necessary
+    gvirtus_device_count : 3 #there are 3 GPUs in the Backend
+    communicator : tcp://IP_address:9988 #IP_address is the first GPU's IP;for example:192.168.0.1
+    communicator : tcp://IP_address:9988 #IP_address is the second GPU's  IP
+    communicator : tcp://IP_address:9988 #IP_address is the third GPU's  IP
     plugins : cudart
     
     #

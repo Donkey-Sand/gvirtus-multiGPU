@@ -131,7 +131,11 @@ ConfigFile::ConfigFile(const char* filename) {
         if(!split(line, &key, &value))
             throw "Invalid entry in config file.";
         mValues.insert(make_pair(string(key), string(value)));
-        mIPaddrs.push_back(value);//Sandy
+        if( (strcmp(key,"communicator")) == 0)	//条件如果成立，表明value的内容为“afunix:///tmp/gvirtus:0666”类似的字符串，IP地址包含在内了
+        {
+        	mIPaddrs.push_back(value);//Sandy
+        }
+
         free(key);
         free(value);
     }
