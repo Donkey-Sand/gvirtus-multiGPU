@@ -180,7 +180,7 @@ CUDA_ROUTINE_HANDLER(RegisterFatBinary) {
         char * handler = input_buffer->AssignString();	//这里得到了正确的数值：0x402e28
         __fatBinC_Wrapper_t * fatBin = CudaUtil::UnmarshalFatCudaBinaryV2(input_buffer);
         void **bin = __cudaRegisterFatBinary((void *) fatBin);
-        pThis->RegisterFatBinary(handler, bin);
+        pThis->RegisterFatBinary(handler, bin);		//bin是本机的一个地址，注册后得到的用来处理handler的句柄
         
 #ifdef DEBUG
         cudaError_t error = cudaGetLastError();
@@ -200,7 +200,7 @@ CUDA_ROUTINE_HANDLER(RegisterFatBinary) {
 //Sandy test04
 CUDA_ROUTINE_HANDLER(UnregisterFatBinary) {
     try {
-        char * handler = input_buffer->AssignString();		//这里应该得到正确的数值：0x402e28，然而却报错了，2016.04.12
+        char * handler = input_buffer->AssignString();		//这里应该得到正确的数值：like 0x402e28，然而却报错了，2016.04.12
         void **fatCubinHandle = pThis->GetFatBinary(handler);	//这个GetFatBinary（）函数调用出错,错误就从这里开始
         __cudaUnregisterFatBinary(fatCubinHandle);		//这里应该是调用了后端物理机上的真正的CUDA API
         pThis->UnregisterFatBinary(handler);	//这里是第二个错误的抛出位置
