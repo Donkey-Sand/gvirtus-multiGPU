@@ -83,8 +83,7 @@ void Frontend::Init(Communicator *c) {
     //这连个值仅仅在这里有用到，其余地方没有使用
 
     cout<<" "<<endl;	//这一句没有任何意义，但是如果删除这一句那么下面这一行会报错，神奇的bug，2016.04.13
-    string tmp_g = cf->Get("gvirtus_device_count");		//tmp的值为数字组成的字符串
-	int gvirtus_device_count = atoi(tmp_g.c_str());
+	int gvirtus_device_count = ConfigFile::Get_gpuNum();
 
     device_index = 0;	//这是我加上的，用来标识GPU的下标
     device_count = gvirtus_device_count;	//这也是我加上的，标识一共有多少个GPU
@@ -152,8 +151,7 @@ void Frontend::InitForSetDevice()
 
     **********/
     cout<<" "<<endl;	//这一句没有任何意义，但是如果删除这一句那么下面这一行会报错，神奇的bug，2016.04.13
-    string num = cf->Get("gvirtus_device_count");		//tmp的值为数字组成的字符串
-	int gvirtus_device_count = atoi(num.c_str());
+	int gvirtus_device_count = ConfigFile::Get_gpuNum();
 	device_index = 0;	//这是我加上的，用来标识GPU的下标
 	device_count = gvirtus_device_count;	//这也是我加上的，标识一共有多少个GPU
     device_choiced = device_number;//这也是我加上的，标识正在使用的是第几个GPU,通过函数cudaSetDevice来设定这个值

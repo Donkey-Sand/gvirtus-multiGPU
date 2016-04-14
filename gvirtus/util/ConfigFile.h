@@ -52,9 +52,11 @@ public:
     const std::string Get(const std::string & key) const;
     const std::string Get_IPs(const std::string & key,const int index) ;//Sandy
     void Dump();
+    static int Get_gpuNum(void);
 private:
     std::map<std::string, std::string> mValues;
     std::vector<std::string> mIPaddrs;	//Sandy 2016.03.11
+    static int backend_gpu;		//Sandy 2016.04.14  标识一共使用多少个后端GPU
 };
 
 #endif	/* _CONFIGFILE_H */

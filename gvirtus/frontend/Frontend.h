@@ -46,6 +46,9 @@
 
 #include "Communicator.h"
 #include "Buffer.h"
+//这是我添加的，为了能够在文件 gvirtus.cudart/frontend/CudaRt_device.cpp中使用ConfigFile的类成员函数Get_gpuNum
+//Sandy 2016.04.14
+# include "ConfigFile.h"
 
 using namespace std;
 

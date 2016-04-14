@@ -57,7 +57,8 @@ extern "C" __host__ cudaError_t CUDARTAPI cudaGetDevice(int *device) {
 //2016.03.11 Sandy
 //2016.03.16 Sandy 第三次大改，用于test03
 //2016.03.23 Sandy 第4次大改，用于test04
-# define DEVICE_COUNT_device_cpp 2
+//# define DEVICE_COUNT_device_cpp 2
+//2016.04.14
 extern "C" __host__ cudaError_t CUDARTAPI cudaGetDeviceCount(int *count)
 {
 
@@ -68,7 +69,7 @@ extern "C" __host__ cudaError_t CUDARTAPI cudaGetDeviceCount(int *count)
     CudaRtFrontend::Execute("cudaGetDeviceCount");
     if(CudaRtFrontend::Success())
         *count = *(CudaRtFrontend::GetOutputHostPointer<int>());
-    *count = DEVICE_COUNT_device_cpp;	//Sandy 2016.03.26
+    *count = ConfigFile::Get_gpuNum();	//Sandy 2016.03.26  2016.04.14
     	//return (cudaError_t)(0);
     return CudaRtFrontend::GetExitCode();
 
