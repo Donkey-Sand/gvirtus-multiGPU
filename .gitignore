@@ -82,3 +82,10 @@ install_manifest.txt
 *.cubin
 *.fatbin
 
+
+.gitignore~
+.hg/*
+.hgignore
+README.md~
+gvirtus/conf/gvirtus.properties~ 
+"\350\257\264\346\230\216～"
