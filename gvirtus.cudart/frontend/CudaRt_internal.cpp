@@ -69,6 +69,7 @@ extern "C" __host__ void __cudaUnregisterFatBinary(void **fatCubinHandle)
     CudaRtFrontend::Execute_internal("cudaUnregisterFatBinary",input_buffer);	//这个函数被重写了 Sandy 2016.04.12
 }
 
+//Sandy 2016.04.15
 extern "C" __host__ void __cudaRegisterFunction(void **fatCubinHandle, const char *hostFun,
         char *deviceFun, const char *deviceName, int thread_limit, uint3 *tid,
         uint3 *bid, dim3 *bDim, dim3 *gDim, int *wSize) {

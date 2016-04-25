@@ -211,7 +211,7 @@ CUDA_ROUTINE_HANDLER(UnregisterFatBinary) {
     }
 
 }
-
+//
 CUDA_ROUTINE_HANDLER(RegisterFunction) {
     try {
         char * handler = input_buffer->AssignString();
