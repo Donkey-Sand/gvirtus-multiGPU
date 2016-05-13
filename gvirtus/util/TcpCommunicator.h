@@ -43,6 +43,7 @@
 #endif
 
 #include "Communicator.h"
+# include <zmq.h>
 
 /**
  * TcpCommunicator implements a Communicator for the TCP/IP socket.

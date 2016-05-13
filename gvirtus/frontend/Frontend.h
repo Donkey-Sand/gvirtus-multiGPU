@@ -36,6 +36,9 @@
 #ifndef _FRONTEND_H
 #define	_FRONTEND_H
 
+//Sandy 2016.05.13
+# include <zmq.h>
+
 #include <vector>
 #include <map>
 #include <string>

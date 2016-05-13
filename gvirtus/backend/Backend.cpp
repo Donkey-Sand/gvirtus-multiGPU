@@ -54,7 +54,7 @@ Backend::Backend(vector<string> &plugins) {
 
 void Backend::Start(Communicator * communicator) {
 	/*
-	 * 设置一系列参数，并执行socket的从socket()到listen()函数部分，等待前段的申请
+	 * 设置一系列参数，并执行socket的从socket()到listen()函数部分，等待前端的申请
 	 */
     communicator->Serve();
     while (true) {
@@ -70,7 +70,12 @@ void Backend::Start(Communicator * communicator) {
          * client->mSocketFd 是用来向客户socket线程传输数据用的句柄
          */
         Process *process = new Process(client, mPlugins);
-        process->Start(NULL);//这是处理过程，对前端的请求都在这个过程中处理
+
+        /*
+         * 这是处理过程，对前端的请求都在这个过程中处理
+         * Start函数中会调用fork方法来生成一个子进程进行处理
+         */
+        process->Start(NULL);
     }
 }
 

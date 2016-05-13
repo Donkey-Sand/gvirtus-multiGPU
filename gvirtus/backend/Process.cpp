@@ -91,7 +91,7 @@ static GetHandler_t LoadModule(const char *name) {
         return NULL;
     }
 
-    cout << "Loaded module '" << name << "'." << endl;
+    cout << "Loaded module '" << name << "'." << endl;		//这里是执行时候输出到屏幕上的
 
     return sym;
 }

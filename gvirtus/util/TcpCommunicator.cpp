@@ -35,6 +35,8 @@
 
 #include "TcpCommunicator.h"
 
+# include <assert.h>
+
 #ifndef _WIN32
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -150,55 +152,53 @@ void TcpCommunicator::Serve() {
     //struct sockaddr_in socket_addr;
 	void *context = zmq_ctx_new ();//新建一个zeromq 的环境
 	assert (context);
+	printf( "create a new zeromq context...\n");
 
-	// Socket to talk to clients
-	void *socket = zmq_socket (context, ZMQ_REP);
-	if( NULL == socket)
+	 // Socket to talk to clients
+	void *socket_fd = zmq_socket (context, ZMQ_REP);
+
+	if( NULL == socket_fd)
 	{
 		throw "**TcpCommunicator:Can't create zmq_socket.";
 	}
-	mSocketFd = *( (int *)socket );  //mSocketFd 非常重要，因为涉及到了函数InitializeStream中流的初始化，如果失败一定是这个值不能用来初始化流
+	printf( "create a new zeromq socket...\n");
 
-	/*
-    if ((mSocketFd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
-        throw "**TcpCommunicator: Can't create socket.";
+	mSocketFd = *( (int *)socket_fd );  //mSocketFd 非常重要，因为涉及到了函数InitializeStream中流的初始化，如果失败一定是这个值不能用来初始化流
 
+	int result = zmq_bind (socket_fd, "tcp://*:9988");//这里只是暂时的，应该把第二个参数修改为构造函数的传输参数
 
-    memset((char *) &socket_addr, 0, sizeof(struct sockaddr_in));
+	 if( result != 0)
+		throw "TcpCommunicator: Can't bind socket.";
+	 printf( "bind zeromq socket.\n");
 
-    socket_addr.sin_family = AF_INET;//设置通信协议为IPv4
-    socket_addr.sin_port = htons(mPort);//设置端口号,htons表示把16位值从主机字节序转换成网络字节序
-    socket_addr.sin_addr.s_addr = INADDR_ANY;//把IP地址设置为本机IP地址
-    */
-
-    /*
-     * 设置socket选项，SO_REUSEADDR （BOOL型？）    允许套接口和一个已在使用中的地址捆绑（参见bind()）
-     */
-   // char on = 1;
-    //setsockopt(mSocketFd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof (on));
-
-    /*
-     * 绑定
-     */
-	int result = zmq_bind (socket, "tcp://*:9988");//这里只是暂时的，应该把第二个参数修改为构造函数的传输参数
-	/*
-    int result = bind(mSocketFd, (struct sockaddr *) & socket_addr,
-            sizeof (struct sockaddr_in));
-            */
-     if( result != 0)
-        throw "TcpCommunicator: Can't bind socket.";
-
-     /*
-      * 侦听，Listen函数使socket处于被动的监听模式，并为该socket建立一个输入数据队列，5代表最多有5个等待的申请
-
-    if (listen(mSocketFd, 5) != 0)
-        throw "AfUnixCommunicator: Can't listen from socket.";
-       */
 }
 
-const Communicator * const TcpCommunicator::Accept() const {
-    int client_socket_fd = mSocketFd;
+const Communicator * const TcpCommunicator::Accept() const
+{
 
+	void *context_ack = zmq_init (1);
+	// Socket to talk to clients
+	void *responder = zmq_socket (context_ack, ZMQ_REP);
+	zmq_bind (responder, "tcp://*:8888");
+	printf("binding on port 8888.\nwaiting client send message...\n");
+
+    //Sandy 2016.05.12
+    //程序阻塞在这里，等待客户端的连接
+    printf("waiting for client...\n");
+    zmq_msg_t request;
+	zmq_msg_init (&request);
+	zmq_msg_recv (&request,responder,0);
+	int size = zmq_msg_size (&request);
+	char *string = (char *)malloc (size + 1);
+	memset(string,0,size+1);
+	memcpy (string, zmq_msg_data (&request), size);
+	printf ("Received Hello string=[%s]\n",string);
+	free(string);
+	zmq_msg_close (&request);
+	zmq_close (responder);
+	zmq_term (context_ack);
+
+	 int client_socket_fd = mSocketFd;
     /*
      * client_socket_fd是用来处理数据传输的socket句柄
      * client_socket_addr是客户程序的地址信息
@@ -247,16 +247,31 @@ void TcpCommunicator::Connect() {
 	assert (context);
 
 	// Socket to talk to clients
-	void *socket = zmq_socket (context, ZMQ_REQ);
-	if( NULL == socket)
+	void *socket_client = zmq_socket (context, ZMQ_REQ);
+	void *socket_client_ack = zmq_socket (context, ZMQ_REQ);
+	if( NULL == socket_client)
 	{
 		throw "**TcpCommunicator:Can't create zmq_socket.";
 	}
-	int result = zmq_connect (socket, "tcp://219.219.216.211:9988");
+	int result = zmq_connect (socket_client, "tcp://219.219.216.211:9988");
+	int result_ack = zmq_connect (socket_client_ack, "tcp://219.219.216.211:8888");
 	if( result != 0)
 	{
 		throw "TcpCommunicator : cannot connect to zmq_socket.";
 	}
+	printf( "zeromq socket connected.\n");
+
+	//向服务器端发送与一条消息，以确定是否连接成功
+	//Sandy 2016.05.12
+	  zmq_msg_t request;
+	  char buffer[]="hello";
+      zmq_msg_init_data (&request, buffer, 6, NULL, NULL);
+	  printf ("Sending request...\n" );
+	  //zmq_send (requester, &request, 0,0);
+	  zmq_msg_send ( &request,socket_client_ack,0);
+	  printf("send over\n");
+	  zmq_msg_close (&request);
+	  zmq_close (socket_client_ack);
 
     InitializeStream();		//在这里，因为客户端只会调用到Connect()这一个函数，所以，必须在这里初始化流文件
 }
