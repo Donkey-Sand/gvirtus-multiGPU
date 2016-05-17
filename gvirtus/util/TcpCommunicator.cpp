@@ -164,6 +164,7 @@ void TcpCommunicator::Serve() {
 	printf( "create a new zeromq socket...\n");
 
 	mSocketFd = *( (int *)socket_fd );  //mSocketFd 非常重要，因为涉及到了函数InitializeStream中流的初始化，如果失败一定是这个值不能用来初始化流
+	zeroSocketFd = socket_fd; //Sandy 2016.05.17
 
 	int result = zmq_bind (socket_fd, "tcp://*:9988");//这里只是暂时的，应该把第二个参数修改为构造函数的传输参数
 
@@ -175,7 +176,6 @@ void TcpCommunicator::Serve() {
 
 const Communicator * const TcpCommunicator::Accept() const
 {
-
 	void *context_ack = zmq_init (1);
 	// Socket to talk to clients
 	void *responder = zmq_socket (context_ack, ZMQ_REP);
@@ -186,19 +186,24 @@ const Communicator * const TcpCommunicator::Accept() const
     //程序阻塞在这里，等待客户端的连接
     printf("waiting for client...\n");
     zmq_msg_t request;
-	zmq_msg_init (&request);
-	zmq_msg_recv (&request,responder,0);
-	int size = zmq_msg_size (&request);
-	char *string = (char *)malloc (size + 1);
-	memset(string,0,size+1);
-	memcpy (string, zmq_msg_data (&request), size);
-	printf ("Received Hello string=[%s]\n",string);
-	free(string);
+	//zmq_msg_init (&request);
+	//zmq_msg_recv (&request,responder,0);
+    char buf[15];
+    buf[0] = '\0';
+	//int size = zmq_msg_size (&request);
+	//char *buffer = (char *)malloc (size + 1);
+	//memset(buffer,0,size+1);
+	//memcpy (buffer, zmq_msg_data (&request), size);
+	//buffer[size] = '\0';
+    int recult_rec = zmq_recv (responder, buf, 15, 0);
+    assert( recult_rec != -1 );
+	printf ("Received Hello string=[%s]\n",buf);
+	//free(buffer);
 	zmq_msg_close (&request);
 	zmq_close (responder);
 	zmq_term (context_ack);
 
-	 int client_socket_fd = mSocketFd;
+	 int client_socket_fd = *( (int *)zeroSocketFd );
     /*
      * client_socket_fd是用来处理数据传输的socket句柄
      * client_socket_addr是客户程序的地址信息
@@ -268,11 +273,14 @@ void TcpCommunicator::Connect() {
       zmq_msg_init_data (&request, buffer, 6, NULL, NULL);
 	  printf ("Sending request...\n" );
 	  //zmq_send (requester, &request, 0,0);
-	  zmq_msg_send ( &request,socket_client_ack,0);
+	  //zmq_msg_send ( &request,socket_client_ack,0);
+	  int result_send = zmq_send (socket_client_ack, "Hello", 5, 0);
+	  assert( result_send != -1);
 	  printf("send over\n");
 	  zmq_msg_close (&request);
 	  zmq_close (socket_client_ack);
 
+    mSocketFd = *( (int *)socket_client ) ;  //Sandy 2016.05.17
     InitializeStream();		//在这里，因为客户端只会调用到Connect()这一个函数，所以，必须在这里初始化流文件
 }
 
@@ -321,16 +329,20 @@ void TcpCommunicator::Sync() {
 }
 
 void TcpCommunicator::InitializeStream() {
+	cout<<"Function InitializeStream called.."<<endl;		//Sandy
 #ifdef _WIN32
         FILE *i = _fdopen(mSocketFd, "r");
 	FILE *o = _fdopen(mSocketFd, "w");
 	mpInputBuf = new filebuf(i);
 	mpOutputBuf = new filebuf(o);
 #else
-	mpInputBuf = new __gnu_cxx::stdio_filebuf<char>(mSocketFd, ios_base::in);		//???????
+	mpInputBuf = new __gnu_cxx::stdio_filebuf<char>(mSocketFd, ios_base::in);		//???????  __gnu_cxx是一个名字空间
 	mpOutputBuf = new __gnu_cxx::stdio_filebuf<char>(mSocketFd, ios_base::out);		//?????
+	//mpInputBuf = new __gnu_cxx::stdio_filebuf<char>(  ( *(int *)zeroSocketFd ), ios_base::in);		//zeromq
+	//mpOutputBuf = new __gnu_cxx::stdio_filebuf<char>( ( *(int *)zeroSocketFd ), ios_base::out);		//zeromq
 #endif
 	mpInput = new istream(mpInputBuf);		//????
 	mpOutput = new ostream(mpOutputBuf);	//?????
+	cout<<"Function InitializeStream Over."<<endl;	//Sandy
 }
 

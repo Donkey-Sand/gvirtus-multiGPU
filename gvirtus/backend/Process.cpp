@@ -104,6 +104,9 @@ Process::Process(const Communicator *communicator, vector<string> &plugins)
     mPlugins = plugins;
 }
 
+/*
+ * 这是在执行结束之后在屏幕上输出的内容
+ */
 Process::~Process() {
     cout << "[Process " << GetPid() << "]: Destroyed." << endl;
 }
@@ -150,9 +153,12 @@ void Process::Execute(void * arg) {
     Buffer * input_buffer = new Buffer();
     /*
      * 这个循环是不断的从mpCommunicator（一个TcpCommunicator类）的mpInput输入流中每次读入一个字符串，直到读到文件结束符EOF为止
+     * 这个循环就是整个的处理总过程
      */
+    int loop_count = 0; //Sandy 2016.05.17
     while (getstring(mpCommunicator, routine))//mpCommunicator此时的值应该为client，即包含客户信息的TcpCommunicator
     {
+    	cout<<"Process loop :"<< loop_count++ <<endl; //Sandy 2016.05.17
         input_buffer->Reset(mpCommunicator);
         Handler *h = NULL;
         for(vector<Handler *>::iterator i = mHandlers.begin();

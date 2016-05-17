@@ -74,6 +74,7 @@ private:
     short mPort;//表示server端使用的端口号
 
     int mSocketFd;//表示使用的socket句柄
+    void *zeroSocketFd;//只用zeromq的句柄  Sanyd 2016.05.12
 #ifdef _WIN32
     std::filebuf *mpInputBuf;
     std::filebuf *mpOutputBuf;
