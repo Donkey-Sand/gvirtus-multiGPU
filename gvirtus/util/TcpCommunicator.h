@@ -53,6 +53,7 @@ public:
     TcpCommunicator(const std::string & communicator);
     TcpCommunicator(const char *hostname, short port);
     TcpCommunicator(int fd, const char *hostname);
+    TcpCommunicator(void* zmq, int fd,const char *hostname);
     virtual ~TcpCommunicator();
     void Serve();
     const Communicator * const Accept() const;

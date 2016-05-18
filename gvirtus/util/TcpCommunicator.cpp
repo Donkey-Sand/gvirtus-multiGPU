@@ -106,6 +106,16 @@ TcpCommunicator::TcpCommunicator(int fd, const char *hostname) {
     InitializeStream();
 }
 
+/*
+ * Sandy 2016.05.17
+ * 用来对zeromq方式进行初始化
+ */
+TcpCommunicator::TcpCommunicator(void* zmq, int fd,const char *hostname) {
+    zeroSocketFd = zmq;
+    mSocketFd = fd;
+    InitializeStream();
+}
+
 TcpCommunicator::~TcpCommunicator() {
     delete[] mInAddr;
 }
@@ -203,7 +213,13 @@ const Communicator * const TcpCommunicator::Accept() const
 	zmq_close (responder);
 	zmq_term (context_ack);
 
-	 int client_socket_fd = *( (int *)zeroSocketFd );
+
+	int fd = 0;
+	size_t fd_len = sizeof(int);
+	int rc = zmq_getsockopt( zeroSocketFd,ZMQ_FD, &fd,&fd_len) ;
+	assert( rc == 0 );
+	cout<<"File descriptor is"<<fd<<endl;
+     int client_socket_fd = fd;
     /*
      * client_socket_fd是用来处理数据传输的socket句柄
      * client_socket_addr是客户程序的地址信息
@@ -212,6 +228,7 @@ const Communicator * const TcpCommunicator::Accept() const
      * 第二个参数貌似毫无用处？？
      */
     return new TcpCommunicator(client_socket_fd,"219.219.216.211");
+    //return new TcpCommunicator(zeroSocketFd,client_socket_fd,"219.219.216.211");
 }
 //2016.04.26 Sandy
 #if 0
@@ -280,7 +297,13 @@ void TcpCommunicator::Connect() {
 	  zmq_msg_close (&request);
 	  zmq_close (socket_client_ack);
 
-    mSocketFd = *( (int *)socket_client ) ;  //Sandy 2016.05.17
+    int fd = 0;
+	size_t fd_len = sizeof(int);
+	int rc = zmq_getsockopt( socket_client,ZMQ_FD, &fd,&fd_len) ;
+	assert( rc == 0 );
+	cout<<"File descriptor is"<<fd<<endl;
+    mSocketFd = fd ;  //Sandy 2016.05.17
+    zeroSocketFd = socket_client;
     InitializeStream();		//在这里，因为客户端只会调用到Connect()这一个函数，所以，必须在这里初始化流文件
 }
 
@@ -338,8 +361,8 @@ void TcpCommunicator::InitializeStream() {
 #else
 	mpInputBuf = new __gnu_cxx::stdio_filebuf<char>(mSocketFd, ios_base::in);		//???????  __gnu_cxx是一个名字空间
 	mpOutputBuf = new __gnu_cxx::stdio_filebuf<char>(mSocketFd, ios_base::out);		//?????
-	//mpInputBuf = new __gnu_cxx::stdio_filebuf<char>(  ( *(int *)zeroSocketFd ), ios_base::in);		//zeromq
-	//mpOutputBuf = new __gnu_cxx::stdio_filebuf<char>( ( *(int *)zeroSocketFd ), ios_base::out);		//zeromq
+	//mpInputBuf = new __gnu_cxx::stdio_filebuf<char>(  ((FILE *)zeroSocketFd ), ios_base::in);		//zeromq
+	//mpOutputBuf = new __gnu_cxx::stdio_filebuf<char>( ((FILE *)zeroSocketFd ), ios_base::out);		//zeromq
 #endif
 	mpInput = new istream(mpInputBuf);		//????
 	mpOutput = new ostream(mpOutputBuf);	//?????
