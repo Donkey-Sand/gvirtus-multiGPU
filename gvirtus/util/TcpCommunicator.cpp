@@ -121,7 +121,7 @@ TcpCommunicator::~TcpCommunicator() {
 }
 
 //2016.04.26 Sandy
-#if 0
+
 void TcpCommunicator::Serve() {
     struct sockaddr_in socket_addr;
 
@@ -155,83 +155,8 @@ void TcpCommunicator::Serve() {
     if (listen(mSocketFd, 5) != 0)
         throw "AfUnixCommunicator: Can't listen from socket.";
 }
-#endif
+
 //2016.04.26 Sandy
-//把通信方式 从socket修改为 zeromq
-void TcpCommunicator::Serve() {
-    //struct sockaddr_in socket_addr;
-	void *context = zmq_ctx_new ();//新建一个zeromq 的环境
-	assert (context);
-	printf( "create a new zeromq context...\n");
-
-	 // Socket to talk to clients
-	void *socket_fd = zmq_socket (context, ZMQ_REP);
-
-	if( NULL == socket_fd)
-	{
-		throw "**TcpCommunicator:Can't create zmq_socket.";
-	}
-	printf( "create a new zeromq socket...\n");
-
-	mSocketFd = *( (int *)socket_fd );  //mSocketFd 非常重要，因为涉及到了函数InitializeStream中流的初始化，如果失败一定是这个值不能用来初始化流
-	zeroSocketFd = socket_fd; //Sandy 2016.05.17
-
-	int result = zmq_bind (socket_fd, "tcp://*:9988");//这里只是暂时的，应该把第二个参数修改为构造函数的传输参数
-
-	 if( result != 0)
-		throw "TcpCommunicator: Can't bind socket.";
-	 printf( "bind zeromq socket.\n");
-
-}
-
-const Communicator * const TcpCommunicator::Accept() const
-{
-	void *context_ack = zmq_init (1);
-	// Socket to talk to clients
-	void *responder = zmq_socket (context_ack, ZMQ_REP);
-	zmq_bind (responder, "tcp://*:8888");
-	printf("binding on port 8888.\nwaiting client send message...\n");
-
-    //Sandy 2016.05.12
-    //程序阻塞在这里，等待客户端的连接
-    printf("waiting for client...\n");
-    zmq_msg_t request;
-	//zmq_msg_init (&request);
-	//zmq_msg_recv (&request,responder,0);
-    char buf[15];
-    buf[0] = '\0';
-	//int size = zmq_msg_size (&request);
-	//char *buffer = (char *)malloc (size + 1);
-	//memset(buffer,0,size+1);
-	//memcpy (buffer, zmq_msg_data (&request), size);
-	//buffer[size] = '\0';
-    int recult_rec = zmq_recv (responder, buf, 15, 0);
-    assert( recult_rec != -1 );
-	printf ("Received Hello string=[%s]\n",buf);
-	//free(buffer);
-	zmq_msg_close (&request);
-	zmq_close (responder);
-	zmq_term (context_ack);
-
-
-	int fd = 0;
-	size_t fd_len = sizeof(int);
-	int rc = zmq_getsockopt( zeroSocketFd,ZMQ_FD, &fd,&fd_len) ;
-	assert( rc == 0 );
-	cout<<"File descriptor is"<<fd<<endl;
-     int client_socket_fd = fd;
-    /*
-     * client_socket_fd是用来处理数据传输的socket句柄
-     * client_socket_addr是客户程序的地址信息
-     * client_socket_addr.sin_addr是客户程序的IP地址
-     * inet_ntoa();//将long类型的网络字节序转换成IP地址字符串
-     * 第二个参数貌似毫无用处？？
-     */
-    return new TcpCommunicator(client_socket_fd,"219.219.216.211");
-    //return new TcpCommunicator(zeroSocketFd,client_socket_fd,"219.219.216.211");
-}
-//2016.04.26 Sandy
-#if 0
 const Communicator * const TcpCommunicator::Accept() const {
     unsigned client_socket_fd;
     struct sockaddr_in client_socket_addr;
@@ -259,56 +184,13 @@ const Communicator * const TcpCommunicator::Accept() const {
     return new TcpCommunicator(client_socket_fd,
             inet_ntoa(client_socket_addr.sin_addr));
 }
-#endif
 /*
  * 这个函数是客户端的socket代码，包含了客户端socket的联系建立过程
  * 这个函数只会在前端的TcpCommunicator类会调用
  */
-void TcpCommunicator::Connect() {
-	void *context = zmq_ctx_new ();//新建一个zeromq 的环境
-	assert (context);
-
-	// Socket to talk to clients
-	void *socket_client = zmq_socket (context, ZMQ_REQ);
-	void *socket_client_ack = zmq_socket (context, ZMQ_REQ);
-	if( NULL == socket_client)
-	{
-		throw "**TcpCommunicator:Can't create zmq_socket.";
-	}
-	int result = zmq_connect (socket_client, "tcp://219.219.216.211:9988");
-	int result_ack = zmq_connect (socket_client_ack, "tcp://219.219.216.211:8888");
-	if( result != 0)
-	{
-		throw "TcpCommunicator : cannot connect to zmq_socket.";
-	}
-	printf( "zeromq socket connected.\n");
-
-	//向服务器端发送与一条消息，以确定是否连接成功
-	//Sandy 2016.05.12
-	  zmq_msg_t request;
-	  char buffer[]="hello";
-      zmq_msg_init_data (&request, buffer, 6, NULL, NULL);
-	  printf ("Sending request...\n" );
-	  //zmq_send (requester, &request, 0,0);
-	  //zmq_msg_send ( &request,socket_client_ack,0);
-	  int result_send = zmq_send (socket_client_ack, "Hello", 5, 0);
-	  assert( result_send != -1);
-	  printf("send over\n");
-	  zmq_msg_close (&request);
-	  zmq_close (socket_client_ack);
-
-    int fd = 0;
-	size_t fd_len = sizeof(int);
-	int rc = zmq_getsockopt( socket_client,ZMQ_FD, &fd,&fd_len) ;
-	assert( rc == 0 );
-	cout<<"File descriptor is"<<fd<<endl;
-    mSocketFd = fd ;  //Sandy 2016.05.17
-    zeroSocketFd = socket_client;
-    InitializeStream();		//在这里，因为客户端只会调用到Connect()这一个函数，所以，必须在这里初始化流文件
-}
 
 //Sandy 2016.04.26
-#if 0
+
 void TcpCommunicator::Connect() {
     struct sockaddr_in remote;
 
@@ -328,7 +210,6 @@ void TcpCommunicator::Connect() {
     }
     InitializeStream();		//在这里，因为客户端只会调用到Connect()这一个函数，所以，必须在这里初始化流文件
 }
-#endif
 
 void TcpCommunicator::Close() {
 }
