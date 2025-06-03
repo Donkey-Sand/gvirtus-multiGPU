@@ -1,0 +1,83 @@
+🔁 总览：前端 React 登录 → Cognito 验证用户 → 发送 JWT Token → API Gateway 验证 → Lambda 处理请求
+
+🔁 概要： フロントエンドの React でログイン → Cognito がユーザーを認証 → JWT トークンを発行 → API Gateway がトークンを検証 → Lambda がリクエストを処理
+
+
+
+🔷 1. React Frontend（前端）
+用户在前端页面点击 “登录” 按钮，输入邮箱/密码
+
+前端使用 Amplify 或 AWS SDK 调用 Cognito 登录接口
+
+登录成功后，Cognito 会返回一组 JWT Token（包含用户信息）
+
+ID Token：包含用户信息
+
+Access Token：用来访问受保护资源
+
+Refresh Token：用来续签 token
+
+✅ 前端通常把这个 JWT Token 存在内存或 localStorage 中备用
+
+🔷 2. Cognito User Pool（用户池）
+是 AWS Cognito 提供的用户管理服务
+
+包含注册、登录、用户信息、密码策略等
+
+当用户登录成功时，会由 User Pool 发出 有效的 JWT Token
+
+🔷 3. API Gateway + Cognito Authorizer
+React 前端在请求后端 API 时，需要在请求头中加入 JWT：
+
+http
+复制
+编辑
+Authorization: Bearer <JWT Token>
+API Gateway 接收到请求后，先把这个 Token 发给 Cognito 验证（通过设置的 Authorizer）
+
+✅ 如果验证成功，才会把请求继续转发给后端 Lambda
+
+🔷 4. Lambda 后端（Python）
+Lambda 是实际处理请求的后端逻辑
+
+可以用 Flask、FastAPI、或裸 Python 实现
+
+Lambda 会拿到 API Gateway 解包后的请求 + 用户信息
+
+如果需要，你也可以在 Lambda 中再次检查 JWT、用户组、权限等
+
+✅ 然后调用数据库或其他逻辑并返回结果
+
+🔷 5. 数据库（可选）
+如果你有用户数据、表单、内容等需要存储：
+
+用 RDS（MySQL/PostgreSQL）
+
+或 DynamoDB（无结构）
+
+Lambda 会连接数据库，查询或写入数据
+
+
+
+📌 简化版流程总结
+
+1. React 用户登录 → Cognito 返回 JWT Token
+2. React 发 API 请求 → 请求头带上 Authorization: Bearer xxx
+3. API Gateway 验证这个 Token（通过 Cognito Authorizer）
+4. 验证通过 → 请求转发给 Lambda
+5. Lambda 返回数据给前端
+
+📌 簡略化されたフロー概要
+
+React のフロントエンドでユーザーがログイン → Cognito が JWT トークンを返す
+
+React が API を呼び出す → リクエストヘッダーに Authorization: Bearer xxx を付加
+
+API Gateway がこのトークンを Cognito Authorizer で検証
+
+検証に成功した場合 → リクエストは Lambda 関数へ転送される
+
+Lambda が処理を実行し、フロントエンドに結果を返す
+
+
+
