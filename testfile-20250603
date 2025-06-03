@@ -1,0 +1,38 @@
+
+
+使用 AWS Amplify 创建 React 应用程序，并使用 Amazon Cognito 添加身份验证
+
+https://docs.aws.amazon.com/zh_cn/prescriptive-guidance/latest/patterns/create-a-react-app-by-using-aws-amplify-and-add-authentication-with-amazon-cognito.html
+
+
+
+
+AWSでS3/Route53/CloudFrontを使用してWEBサイトを公開する手順を解説
+
+https://qiita.com/ushi_osushi/items/a32d7b710567c2313faa
+
+
+构建全栈 React 应用程序
+教程
+
+https://aws.amazon.com/cn/getting-started/hands-on/build-react-app-amplify-graphql/module-two/
+
+
+
+AWS Cognitoでのユーザ認証＆API認可サンプル
+
+https://github.com/teradonburi/CognitoUserAuthApiApproval?tab=readme-ov-file#aws-cognito%E3%81%A7%E3%81%AE%E3%83%A6%E3%83%BC%E3%82%B6%E8%AA%8D%E8%A8%BCapi%E8%AA%8D%E5%8F%AF%E3%82%B5%E3%83%B3%E3%83%97%E3%83%AB
+
+
+
+使用亚马逊 Cognito 和 AWS Amplify 用户界面对现有 React 应用程序用户进行身份验证
+
+https://docs.aws.amazon.com/zh_cn/prescriptive-guidance/latest/patterns/authenticate-react-app-users-cognito-amplify-ui.html
+
+
+
+将基于 React 的单页应用程序部署到 Amazon S3 CloudFront
+
+https://docs.aws.amazon.com/zh_cn/prescriptive-guidance/latest/patterns/deploy-a-react-based-single-page-application-to-amazon-s3-and-cloudfront.html
+
+
