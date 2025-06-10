@@ -1,0 +1,103 @@
+🧭 总体方案架构
+[Client] ⇄ [API Gateway] ⇄ [AWS Lambda (FastAPI + Mangum)] ⇄ [Your logic]
+
+fastapi-lambda-app/
+├── app/
+│   ├── main.py
+├── requirements.txt
+├── build.sh （可选上传脚本）
+
+① 编写 FastAPI 代码（app/main.py）
+from fastapi import FastAPI
+from mangum import Mangum
+
+app = FastAPI()
+
+@app.get("/")
+async def root():
+    return {"message": "Hello from Lambda!"}
+
+handler = Mangum(app)  # Lambda 用的入口函数
+
+
+⸻
+② requirements.txt（依赖文件）
+
+fastapi
+mangum
+你可以根据需要添加其它依赖，比如 httpx, pydantic, sqlalchemy 等。
+
+⸻
+
+③ 打包上传到 AWS Lambda（手动 or 自动）
+
+✅ 推荐：本地打包 ZIP 上传
+
+以下是详细打包步骤：
+	1.	安装依赖到本地 package/ 目录：
+
+mkdir -p package
+pip install -r requirements.txt -t package
+
+	2.	把你的源码一起打包：
+
+cp -r app package/
+cd package
+zip -r9 ../fastapi-lambda.zip .
+
+包含目录结构后，生成的 fastapi-lambda.zip 是你要上传到 Lambda 的部署包。
+
+④ 创建 Lambda 函数
+	1.	登录 AWS 控制台 → Lambda → Create function
+	2.	选择 “Author from scratch”，填写：
+	•	名称：fastapiLambda
+	•	Runtime：Python 3.9（或 3.10）
+	3.	选择 “上传 .zip 文件”
+	4.	设置 Handler：app.main.handler
+	•	表示你的函数代码在 app/main.py 中，使用 handler = Mangum(app) 作为 Lambda 入口。
+
+
+5.	调整超时时间（建议设置为 30 秒以上）
+	6.	创建或选用执行角色（需包含 CloudWatch 权限）
+
+⑤ 配置 API Gateway
+	1.	打开 API Gateway → 创建 HTTP API（比 REST API 更轻量）
+	2.	添加整合目标：选择 Lambda 函数（上面创建的）
+	3.	设置路径（如 /）
+	4.	部署 API（自动生成一个 URL）
+
+✅ 测试地址可能长这样：
+
+https://abcd1234.execute-api.ap-northeast-1.amazonaws.com/
+直接访问就会看到：
+{"message": "Hello from Lambda!"}
+
+{"message": "Hello from Lambda!"}
+@app.get("/items/{item_id}")
+async def read_item(item_id: int):
+    return {"item_id": item_id}
+
+
+🎁 Bonus：FastAPI 路由异步示例
+@app.get("/items/{item_id}")
+async def read_item(item_id: int):
+    return {"item_id": item_id}
+
+
+你可以像平时写 FastAPI 一样继续扩展
+
+@app.get("/items/{item_id}")
+async def read_item(item_id: int):
+    return {"item_id": item_id}
+
+
+API Gateway 会自动匹配 /items/123。
+
+
+
+
+
+
+
+
+
