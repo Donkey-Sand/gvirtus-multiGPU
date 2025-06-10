@@ -222,6 +222,30 @@ export default App;
 
 
 
+from fastapi import FastAPI
+from pydantic import BaseModel
+from mangum import Mangum
+
+app = FastAPI()
+
+class Item(BaseModel):
+    name: str
+    price: float
+
+@app.get("/")
+async def root():
+    return {"message": "Hello from FastAPI in Lambda!"}
+
+@app.post("/items/")
+async def create_item(item: Item):
+    return {"name": item.name, "price": item.price}
+
+# Lambda handler
+handler = Mangum(app)
+
+
+
+
 
 
 
