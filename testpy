@@ -1,0 +1,35 @@
+from fastapi import FastAPI
+from pydantic import BaseModel
+from mangum import Mangum
+
+app = FastAPI()
+
+class Item(BaseModel):
+    name: str
+    price: float
+
+@app.post("/items/")
+async def create_item(item: Item):
+    return {"message": f"Received item: {item.name}, price: {item.price}"}
+
+handler = Mangum(app)
+
+
+
+fastapi
+pydantic
+mangum
+
+
+
+
+app.main.handler
+
+	4.	测试路径：POST /items/，Body 示例：
+
+
+{
+  "name": "Apple",
+  "price": 3.5
+}
+
