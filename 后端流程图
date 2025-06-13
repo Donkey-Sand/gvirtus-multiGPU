@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant フロントエンド（React）
+    participant API Gateway
+    participant Lambda（FastAPI）
+    participant DynamoDB
+
+    フロントエンド（React）->>API Gateway: APIリクエスト（GET /user-info 等）
+    API Gateway->>Lambda（FastAPI）: イベントデータを転送
+    Lambda（FastAPI）->>DynamoDB: データ取得/更新リクエスト
+    DynamoDB-->>Lambda（FastAPI）: クエリ結果または更新結果
+    Lambda（FastAPI）-->>API Gateway: 処理結果を返却（JSONレスポンス）
+    API Gateway-->>フロントエンド（React）: レスポンス返却
