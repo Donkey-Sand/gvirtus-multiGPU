@@ -11,6 +11,30 @@ graph TD
     E -- No --> K[エラーメッセージ表示]
 
 
+sequenceDiagram
+    participant ユーザー
+    participant ブラウザ（React）
+    participant AWS Cognito（User Pool）
+
+    ユーザー->>ブラウザ（React）: メール・パスワード入力
+    ブラウザ（React）->>Cognito: InitiateAuth リクエスト（AuthFlow: USER_PASSWORD_AUTH）
+    Cognito-->>ブラウザ（React）: 認証結果（Success / Challenge）
+
+    alt 成功時
+        Cognito-->>ブラウザ（React）: ID Token, Access Token, Refresh Token
+        ブラウザ（React）->>LocalStorage: トークン保存
+        ブラウザ（React）-->>ユーザー: ログイン完了画面に遷移
+    else 失敗時
+        Cognito-->>ブラウザ（React）: エラーメッセージ（例: NotAuthorizedException）
+        ブラウザ（React）-->>ユーザー: ログイン失敗メッセージ表示
+    end
+
+
+
+
+
+
+
 
 sequenceDiagram
     participant ユーザー
