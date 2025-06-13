@@ -9,3 +9,34 @@ graph TD
     H --> I[レスポンスを受け取り]
     I --> J[ユーザー画面に表示]
     E -- No --> K[エラーメッセージ表示]
+
+
+
+sequenceDiagram
+    participant ユーザー
+    participant ブラウザ
+    participant CloudFront（CDN）
+    participant S3（静的ホスティング）
+    participant Cognito（認証）
+    participant API Gateway
+    participant Lambda
+    participant DynamoDB
+
+    ユーザー->>ブラウザ: アクセス（例：https://app.example.com）
+    ブラウザ->>CloudFront: リクエスト（HTML/JS/CSS）
+    CloudFront->>S3: コンテンツ取得
+    S3-->>CloudFront: 静的ファイル（Reactアプリ）
+    CloudFront-->>ブラウザ: Reactアプリ読み込み
+
+    ユーザー->>ブラウザ: ログイン情報入力（メール・パスワード）
+    ブラウザ->>Cognito: ログインリクエスト
+    Cognito-->>ブラウザ: JWTトークン発行（ID/Access）
+
+    ブラウザ->>API Gateway: API呼び出し（トークン付き）
+    API Gateway->>Cognito: トークン検証
+    Cognito-->>API Gateway: 認証OK
+    API Gateway->>Lambda: リクエスト転送
+    Lambda->>DynamoDB: データ取得/更新
+    DynamoDB-->>Lambda: レスポンス
+    Lambda-->>API Gateway: 処理結果
+    API Gateway-->>ブラウザ: JSONレスポンス
