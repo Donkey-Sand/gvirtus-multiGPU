@@ -97,6 +97,77 @@ def search(keyword: str, user_id: str = Depends(get_user_id_from_token)):
     5.2 /history の処理詳細
 
 
+ステップ
+処理内容
+①
+AuthorizationヘッダーからJWTを取得
+②
+トークンからuser_id（sub）を取得
+③
+DynamoDBに対して、user_idをキーとして検索実行
+④
+最新50件の検索履歴を取得、Reactに返却
+
+@app.get("/history")
+def get_history(user_id: str = Depends(get_user_id_from_token)):
+    response = dynamodb_table.query(
+        KeyConditionExpression=Key("user_id").eq(user_id),
+        ScanIndexForward=False,
+        Limit=50
+    )
+    return response["Items"]
+
+    
+
+6. 🔧 DynamoDBテーブル定義
+
+属性名
+データ型
+内容
+user_id
+String
+Cognitoのsub
+timestamp
+String
+ISO 8601形式の時刻
+keyword
+String
+ユーザーが入力したキーワード
+ip_address
+String
+オプション：IPアドレス
+device
+String
+オプション：User-Agent情報
+
+
+•	パーティションキー：user_id
+	•	ソートキー：timestamp
+
+
+7. 📱 フロントエンド連携（React）
+	•	Amplify.Auth.currentSession() などでトークンを取得
+	•	axios で Authorization: Bearer <token> を付与して API 呼び出し
+	•	GET /history の結果を useEffect 等で取得しリスト描画
+
+⸻
+
+8. ✅ セキュリティ設計
+	•	全APIは Cognito による認証が必須
+	•	Lambda 内で JWT を検証して user_id を抽出
+	•	他人の履歴にアクセスすることは構造的に不可能
+
+⸻
+
+9. 🔮 拡張機能（オプション）
+	•	履歴の削除・編集機能（DELETE /history）
+	•	GSIによるキーワード横断検索
+	•	履歴のCSV出力
+	•	検索履歴を元にしたレコメンド機能
+
+
+
+
 
 
 
