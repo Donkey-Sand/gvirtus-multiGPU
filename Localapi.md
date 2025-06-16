@@ -1,0 +1,107 @@
+了解了，以下是包含「处理概要（処理概要）」、「处理流程（処理フロー）」与「处理详细过程（処理詳細）」三大部分的完整版设计书更新内容。这三部分已加入到原始结构中，使文档更完整、专业。
+
+⸻
+
+📘 ユーザー検索履歴機能設計書（完全版）
+
+作成日：2025年6月16日
+作成者：Jo
+適用システム：React + Cognito + API Gateway + Lambda + DynamoDB
+
+⸻
+
+1. 🎯 機能概要
+
+本機能では、ログイン済みユーザーが実施した検索キーワードを DynamoDB に記録し、後から一覧として確認できるようにする。ユーザーは検索履歴を画面上で確認・削除でき、将来的にはお気に入り登録や逆検索機能も追加可能とする。
+
+⸻
+
+2. 🧩 システム構成図
+
+3. [React] ⇄ [API Gateway] ⇄ [Lambda (FastAPI)] ⇄ [DynamoDB]
+                         ⇑
+                    [Cognito User Pool]
+
+   3. 🗂️ 処理概要（处理概要）
+区分
+内容
+対象ユーザー
+Cognito経由でログインしているユーザー
+トリガー
+ユーザーが検索キーワードを入力し検索ボタンを押下
+保存先
+DynamoDB UserSearchHistory テーブル
+取得処理
+/history エンドポイントにより、最新50件を取得
+セキュリティ
+JWTトークンでの認証 + user_id 単位での履歴管理
+
+4. 🔁 処理フロー（处理流程）
+
+📌 4.1 検索履歴の保存
+
+[ユーザー操作]
+     ↓
+React（検索ボタン押下）
+     ↓
+API Gateway (/search POST)
+     ↓
+Lambda (FastAPI):
+  - JWT検証
+  - user_id抽出
+  - DynamoDBに検索履歴保存
+     ↓
+検索結果をReactに返却
+
+
+📌 4.2 検索履歴の取得
+
+[ページ表示時]
+     ↓
+React（useEffectなどで /history 取得）
+     ↓
+API Gateway (/history GET)
+     ↓
+Lambda (FastAPI):
+  - JWT検証
+  - user_id で DynamoDB に問い合わせ
+     ↓
+React に履歴リストを返却 → 表示
+
+5. 🧠 処理詳細（处理详细过程）
+
+5.1 /search の処理詳細
+ステップ
+処理内容
+①
+AuthorizationヘッダーからJWTを取得
+②
+トークンをデコードし、user_id（sub）を取得
+③
+入力キーワード + 現在時刻を構成しDynamoDBへ保存
+④
+検索処理を実行し、結果を返却
+
+@app.post("/search")
+def search(keyword: str, user_id: str = Depends(get_user_id_from_token)):
+    item = {
+        "user_id": user_id,
+        "timestamp": datetime.utcnow().isoformat(),
+        "keyword": keyword
+    }
+    dynamodb_table.put_item(Item=item)
+    return {"results": run_search(keyword)}
+
+
+
+    5.2 /history の処理詳細
+
+
+
+
+
+
+
+
+
+
